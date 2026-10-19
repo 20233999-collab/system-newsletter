@@ -52,7 +52,7 @@ export const IntroManifestoSection: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  const renderWords = (text: string) => {
+  const renderWords = (text: string, isSubtitle = false) => {
     return text.split(' ').map((word, i) => {
       const isCritical =
         word.toLowerCase().includes('desastre') ||
@@ -62,8 +62,14 @@ export const IntroManifestoSection: React.FC = () => {
       return (
         <span
           key={i}
-          className={`manifesto-word inline-block mr-[0.28em] transition-colors duration-150 ${
-            isCritical ? 'font-black tracking-tight' : 'font-bold'
+          className={`manifesto-word inline-block mx-[0.14em] transition-colors duration-150 ${
+            isSubtitle
+              ? isCritical
+                ? 'font-bold text-[#00D2B5] drop-shadow-[0_0_12px_rgba(0,210,181,0.5)]'
+                : 'font-medium'
+              : isCritical
+              ? 'font-black tracking-tight text-white'
+              : 'font-bold'
           }`}
         >
           {word}
@@ -75,7 +81,7 @@ export const IntroManifestoSection: React.FC = () => {
   return (
     <section
       ref={containerRef}
-      className="relative w-full bg-[#080808] text-[#F6F6F4] min-h-[220vh] z-20"
+      className="relative w-full bg-[#080808] text-[#F6F6F4] min-h-[240vh] z-20"
     >
       {/* Transición suave de entrada desde el Hero */}
       <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-transparent to-[#080808] pointer-events-none" />
@@ -85,28 +91,31 @@ export const IntroManifestoSection: React.FC = () => {
         ref={textWrapperRef}
         className="sticky top-0 h-[100dvh] w-full flex flex-col justify-center items-center px-6 sm:px-12 md:px-16 lg:px-24 select-none overflow-hidden"
       >
-        <div className="max-w-5xl mx-auto w-full flex flex-col items-start gap-8 sm:gap-12">
-          {/* Micro-etiqueta periodística editorial */}
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 bg-[#00D2B5] rounded-full animate-pulse shadow-[0_0_8px_rgba(0,210,181,0.8)]" />
-            <span className="font-mono text-[10px] sm:text-xs uppercase tracking-[0.28em] text-[#00D2B5] font-semibold">
+        <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center gap-7 sm:gap-10">
+          {/* Micro-etiqueta periodística editorial centrada */}
+          <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 bg-[#00D2B5] rounded-full animate-pulse shadow-[0_0_8px_rgba(0,210,181,0.9)]" />
+            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.28em] text-[#00D2B5] font-semibold">
               // 01. EL ORIGEN DEL COLAPSO
             </span>
           </div>
 
-          {/* Gran Párrafo Editorial Monumental con Scroll Scrub */}
-          <div className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-[3.5rem] leading-[1.24] sm:leading-[1.18] md:leading-[1.14] tracking-tight">
-            <p className="mb-6 sm:mb-8">
-              {renderWords(MANIFESTO_BLOCK_1)}
-            </p>
-            <p className="text-white/40">
-              {renderWords(MANIFESTO_BLOCK_2)}
-            </p>
-          </div>
+          {/* Bloque 1: Gran Titular Monumental */}
+          <h2 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.2] sm:leading-[1.16] md:leading-[1.12] tracking-tight max-w-4xl">
+            {renderWords(MANIFESTO_BLOCK_1)}
+          </h2>
 
-          {/* Micro-pie periodístico de referencia */}
-          <div className="pt-2 border-t border-white/10 w-full flex items-center justify-between text-white/35 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider">
-            <span>REGISTRO ARCHIVO HISTÓRICO // 2016</span>
+          {/* Separador editorial minimalista con glow */}
+          <div className="w-12 h-px bg-gradient-to-r from-transparent via-[#00D2B5]/60 to-transparent my-1 sm:my-2" />
+
+          {/* Bloque 2: Subtítulo secundario, refinado y llamativo */}
+          <p className="font-body text-base sm:text-xl md:text-2xl text-white/90 leading-relaxed sm:leading-snug max-w-2xl font-light tracking-normal">
+            {renderWords(MANIFESTO_BLOCK_2, true)}
+          </p>
+
+          {/* Micro-pie periodístico de referencia centrado */}
+          <div className="pt-4 border-t border-white/10 w-full max-w-md flex items-center justify-between text-white/35 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest">
+            <span>REGISTRO ARCHIVO // 2016</span>
             <span>CAPÍTULO I</span>
           </div>
         </div>
