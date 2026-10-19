@@ -147,12 +147,18 @@ export const IntroManifestoSection: React.FC = () => {
       {/* Transición suave de entrada desde el Hero */}
       <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-transparent to-[#080808] pointer-events-none" />
 
+      {/* Resplandor ambiental cinemático perpetuo en movimiento sutil */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden flex items-center justify-center">
+        <div className="w-[50rem] h-[35rem] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,215,0,0.06)_0%,rgba(0,210,181,0.03)_40%,transparent_70%)] blur-3xl animate-ambient-glow" />
+      </div>
+
       {/* Contenedor Sticky para el texto central */}
       <div
         ref={textWrapperRef}
         className="sticky top-0 h-[100dvh] w-full flex flex-col justify-center items-center px-6 sm:px-12 md:px-16 lg:px-24 select-none overflow-hidden"
       >
-        <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center">
+        {/* Envoltorio con micro-flotación ambiental continua (jamás está quieto) */}
+        <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center animate-ambient-float">
           {/* Bloque 1: Titular Principal con Typewriter Reveal */}
           <h2 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.22] sm:leading-[1.18] md:leading-[1.14] tracking-tight max-w-4xl font-bold">
             {renderTypewriterText(MANIFESTO_BLOCK_1, false)}
@@ -164,28 +170,24 @@ export const IntroManifestoSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Indicador de scroll reactivo (Opción 2: Idle Pulse + Opción 4: Badge magnético) */}
+        {/* Indicador de scroll centrado, ultra-simple y minimalista */}
         <div
           ref={badgeRef}
           className={`absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none select-none transition-all duration-700 ease-out ${
-            // Visible si el usuario se queda quieto (isIdle) o cuando el scroll llega al final del texto (scrollProgress > 0.92)
             isIdle || scrollProgress > 0.92
-              ? 'opacity-100 translate-y-0 scale-100'
-              : 'opacity-0 translate-y-3 scale-95 pointer-events-none'
+              ? 'opacity-85 translate-y-0'
+              : 'opacity-0 translate-y-2 pointer-events-none'
           }`}
         >
-          {/* Badge magnético interactivo (Opción 4) */}
-          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/60 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-ping" />
-            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-white/90 font-medium">
-              {scrollProgress > 0.92 ? 'CONTINUAR HISTORIA ↓' : 'SCROLL ↓'}
-            </span>
+          {/* Micro-cápsula ultra-minimalista y centrada */}
+          <div className="w-4 h-7 rounded-full border border-white/20 bg-black/50 backdrop-blur-sm flex items-start justify-center p-0.5 shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
+            <div className="w-1 h-1.5 rounded-full bg-gradient-to-b from-[#FFD700] to-white animate-scroll-wheel shadow-[0_0_6px_rgba(255,215,0,0.8)]" />
           </div>
 
-          {/* Micro-píldora con wheel dinámico sutil */}
-          <div className="relative w-4 h-7 rounded-full border border-white/20 bg-black/30 flex items-start justify-center p-0.5">
-            <div className="w-1 h-1.5 rounded-full bg-gradient-to-b from-[#FFD700] to-[#FFFFFF] animate-scroll-wheel shadow-[0_0_8px_rgba(255,215,0,0.8)]" />
-          </div>
+          {/* Micro-label monoespaciado centrado */}
+          <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+            {scrollProgress > 0.92 ? 'Continuar' : 'Scroll'}
+          </span>
         </div>
       </div>
     </section>

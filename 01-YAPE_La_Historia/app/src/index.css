@@ -126,12 +126,45 @@ html.lenis, html.lenis body {
   will-change: transform, opacity;
 }
 
+/* Atmospheric Ambient Float for Section 2 (Cinematic Breath) */
+@keyframes ambient-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+@keyframes ambient-pulse-glow {
+  0%, 100% {
+    opacity: 0.12;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.22;
+    transform: scale(1.08);
+  }
+}
+
+.animate-ambient-float {
+  animation: ambient-float 6.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-ambient-glow {
+  animation: ambient-pulse-glow 8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
 /* Accessibility: prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-back,
   .animate-marquee-front,
   .animate-mote-float,
-  .animate-scroll-wheel {
+  .animate-scroll-wheel,
+  .animate-ambient-float,
+  .animate-ambient-glow {
     animation: none !important;
   }
 
