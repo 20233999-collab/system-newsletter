@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Syne', -apple-system, sans-serif;
+    --font-body: 'Inter Tight', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #080808;
+    color: #F6F6F4;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Custom Brutalist Box Shadows and Halftone */
+.shadow-brutalist-white {
+  box-shadow: 4px 4px 0px #ffffff;
+}
+
+.shadow-brutalist-dim {
+  box-shadow: 4px 4px 0px #262626;
+}
+
+.shadow-cutout {
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.75)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Lenis Recommended CSS */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ======================================================== */
+/* MARQUEE PARALLAX CONTINUO PARA EDIFICIOS (DESKTOP & MOBILE) */
+/* ======================================================== */
+@keyframes marquee-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee-back {
+  animation: marquee-drift 110s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-front {
+  animation: marquee-drift 45s linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 767px) {
+  .animate-marquee-back {
+    animation-duration: 65s;
+  }
+  .animate-marquee-front {
+    animation-duration: 26s;
+  }
+}
+
+/* Atmospheric floating motes / micro-partículas */
+@keyframes mote-drift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(12px, -24px, 0);
+  }
+}
+
+.animate-mote-float {
+  animation: mote-drift ease-in-out infinite;
+  will-change: transform;
+}
+

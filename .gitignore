@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production build outputs
+dist/
+*/dist/
+dist-ssr/
+*/dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Playwright & Testing artifacts
+.playwright-mcp/
+test-results/
+playwright-report/
+blob-report/
+
+# Temporary review captures
+screenshot_*.png
+preview_hero_*.png
+preview_editor_open.png
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.local
+*.sw?
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
