@@ -13,10 +13,13 @@ export const HeroStage: React.FC = () => {
   const mistTrack1Ref = useRef<HTMLDivElement>(null);
   const mistTrack2Ref = useRef<HTMLDivElement>(null);
   const edificiosBackParallaxRef = useRef<HTMLDivElement>(null);
+  const edificiosBackIntroRef = useRef<HTMLDivElement>(null);
   const edificiosBackMarqueeRef = useRef<HTMLDivElement>(null);
   const yapeParallaxRef = useRef<HTMLDivElement>(null);
+  const yapeIntroRef = useRef<HTMLDivElement>(null);
   const yapeFloatRef = useRef<HTMLDivElement>(null);
   const edificiosFrontParallaxRef = useRef<HTMLDivElement>(null);
+  const edificiosFrontIntroRef = useRef<HTMLDivElement>(null);
   const edificiosFrontMarqueeRef = useRef<HTMLDivElement>(null);
 
   // Visual Interactive Config State (Persisted in localStorage)
@@ -188,37 +191,102 @@ export const HeroStage: React.FC = () => {
       });
 
       // ========================================================
-      // MÓDULO 3: INTRO REVEAL CINEMÁTICO AL CARGAR LA PÁGINA
+      // MÓDULO 3: INTRO ANIMATION ESTILO VOX (COLLAGE WORKBENCH)
+      // Recortes analógicos que se arrastran y estampan en la mesa
       // ========================================================
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      tl.from(skyRef.current, {
-        opacity: 0,
-        duration: 1.2,
-      })
-      .from([edificiosBackParallaxRef.current, edificiosFrontParallaxRef.current], {
-        y: 28,
+      // 1. Pliego de fondo / cielo que se asienta sobre la mesa de trabajo
+      tl.fromTo(skyRef.current, {
+        scale: 1.05,
         opacity: 0.35,
-        duration: 1.3,
-        stagger: 0.12,
-      }, '-=0.8')
-      .from(yapeParallaxRef.current, {
-        opacity: 0,
-        duration: 1,
-      }, '-=0.8')
-      .from('.hero-headline-chunk', {
-        y: 26,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.14,
+      }, {
+        scale: 1.0,
+        opacity: 1,
+        duration: 1.0,
         ease: 'power2.out',
-      }, '-=0.6')
-      .from('.hero-scroll-cue', {
+      })
+
+      // 2. Edificios de Fondo: Arrastre con inercia desde la izquierda con micro-rotación
+      .fromTo(edificiosBackIntroRef.current, {
+        x: -160,
+        y: 55,
+        rotation: -2.4,
         opacity: 0,
-        y: 10,
+      }, {
+        x: 0,
+        y: 0,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.85,
+        ease: 'power3.out',
+      }, '-=0.75')
+
+      // 3. Titular Monumental: Estampado tipográfico en cascada rápida
+      .fromTo('.hero-headline-chunk', {
+        y: 45,
+        rotation: 1.8,
+        opacity: 0,
+      }, {
+        y: 0,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.65,
+        stagger: 0.08,
+        ease: 'power4.out',
+      }, '-=0.65')
+
+      // 4. Yape Superhéroe: Cutout Drop & Slap (Recorte colocado que cae y se estampa)
+      .fromTo(yapeIntroRef.current, {
+        y: -120,
+        scale: 1.25,
+        rotation: 4.8,
+        opacity: 0,
+      }, {
+        y: 0,
+        scale: 1.0,
+        rotation: 0,
+        opacity: 1,
         duration: 0.7,
+        ease: 'back.out(1.35)',
+      }, '-=0.55')
+
+      // 5. Edificios Frente: Tarjeta troquelada que sube y calza tapando los zapatos de Yape
+      .fromTo(edificiosFrontIntroRef.current, {
+        y: 110,
+        rotation: 1.2,
+        opacity: 0,
+      }, {
+        y: 0,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: 'power3.out',
+      }, '-=0.55')
+
+      // 6. Subtítulo periodístico: Ficha de archivo que se asienta
+      .fromTo('.hero-subtext-chunk', {
+        y: 25,
+        rotation: -1,
+        opacity: 0,
+      }, {
+        y: 0,
+        rotation: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: 'power3.out',
+      }, '-=0.45')
+
+      // 7. Scroll cue minimalista
+      .fromTo('.hero-scroll-cue', {
+        opacity: 0,
+        y: 15,
+      }, {
+        opacity: 0.8,
+        y: 0,
+        duration: 0.6,
         ease: 'power2.out',
-      }, '-=0.3');
+      }, '-=0.25');
     });
 
     return () => ctx.revert();
@@ -374,9 +442,13 @@ export const HeroStage: React.FC = () => {
           className="flex items-end justify-start shrink-0 w-max select-none pointer-events-none will-change-transform"
         >
           <div
-            ref={edificiosBackMarqueeRef}
-            className="flex items-end shrink-0 select-none pointer-events-none will-change-transform animate-marquee-back"
+            ref={edificiosBackIntroRef}
+            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform"
           >
+            <div
+              ref={edificiosBackMarqueeRef}
+              className="flex items-end shrink-0 select-none pointer-events-none will-change-transform animate-marquee-back"
+            >
             {/* Unit 1: 4 tiles seamless */}
             <img
               src="/assets/hero/edificios02.png"
@@ -430,6 +502,7 @@ export const HeroStage: React.FC = () => {
             />
           </div>
         </div>
+      </div>
         {isEditorOpen && activeTab === 'edificiosBack' && (
           <div className="absolute top-4 left-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
             CAPA SELECCIONADA: EDIFICIOS FONDO (02) - TRIPLET ESPEJO
@@ -486,13 +559,15 @@ export const HeroStage: React.FC = () => {
         }`}
       >
         <div ref={yapeParallaxRef} className="w-full h-full relative will-change-transform">
-          <div ref={yapeFloatRef} className="w-full h-full relative will-change-transform">
-            <img
-              src="/assets/hero/yape-persona.png"
-              alt="Yape Superhéroe"
-              draggable={false}
-              className="w-full h-auto shadow-cutout transition-transform duration-200 pointer-events-none select-none"
-            />
+          <div ref={yapeIntroRef} className="w-full h-full relative will-change-transform">
+            <div ref={yapeFloatRef} className="w-full h-full relative will-change-transform">
+              <img
+                src="/assets/hero/yape-persona.png"
+                alt="Yape Superhéroe"
+                draggable={false}
+                className="w-full h-auto shadow-cutout transition-transform duration-200 pointer-events-none select-none"
+              />
+            </div>
           </div>
         </div>
         {isEditorOpen && activeTab === 'yapePerson' && (
@@ -550,9 +625,13 @@ export const HeroStage: React.FC = () => {
           className="flex items-end justify-start shrink-0 w-max select-none pointer-events-none will-change-transform"
         >
           <div
-            ref={edificiosFrontMarqueeRef}
-            className="flex items-end shrink-0 select-none pointer-events-none will-change-transform animate-marquee-front"
+            ref={edificiosFrontIntroRef}
+            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform"
           >
+            <div
+              ref={edificiosFrontMarqueeRef}
+              className="flex items-end shrink-0 select-none pointer-events-none will-change-transform animate-marquee-front"
+            >
             {/* Unit 1: 4 tiles seamless */}
             <img
               src="/assets/hero/edificios01.png"
@@ -606,6 +685,7 @@ export const HeroStage: React.FC = () => {
             />
           </div>
         </div>
+      </div>
         {isEditorOpen && activeTab === 'edificiosFront' && (
           <div className="absolute top-4 right-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
             CAPA SELECCIONADA: EDIFICIOS FRENTE (01) - TRIPLET ESPEJO
@@ -684,14 +764,15 @@ export const HeroStage: React.FC = () => {
         >
           {/* Monumental Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-[#FFFFFF] leading-[1.08] md:leading-[1.05] drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
-            <span className="hero-headline-chunk block">EL IMPERIO QUE CASI MUERE</span>
-            <span className="hero-headline-chunk block text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EAEAEA] to-[#888888]">
-              EN 72 HORAS:
+            <span className="hero-headline-chunk block will-change-transform">EL IMPERIO</span>
+            <span className="hero-headline-chunk block will-change-transform">QUE CASI</span>
+            <span className="hero-headline-chunk block text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EAEAEA] to-[#888888] will-change-transform">
+              MUERE EN 72 HORAS:
             </span>
           </h1>
 
           {/* Sub-headline / Cuerpo */}
-          <p className="hero-headline-chunk mt-3.5 md:mt-4 text-xs sm:text-sm md:text-base text-[#D0D0CE] max-w-sm md:max-w-lg font-body font-medium leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)]">
+          <p className="hero-subtext-chunk mt-3.5 md:mt-4 text-xs sm:text-sm md:text-base text-[#D0D0CE] max-w-sm md:max-w-lg font-body font-medium leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] will-change-transform">
             Hoy está instalada en el bolsillo de casi todos, pero en su primer fin de semana de
             lanzamiento fue un <span className="text-[#FFFFFF] underline decoration-[#555555] font-semibold">desastre absoluto</span>.
             Esta no es la historia de una app exitosa; son los desafíos que casi la matan.
@@ -703,7 +784,7 @@ export const HeroStage: React.FC = () => {
       {/* INDICADOR DE SCROLL EDITORIAL MINIMALISTA - Z: 30        */}
       {/* ======================================================== */}
       <div
-        className={`hero-scroll-cue absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1.5 pointer-events-none select-none transition-opacity duration-300 ${
+        className={`hero-scroll-cue absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 hidden sm:flex flex-col items-center gap-1.5 pointer-events-none select-none transition-opacity duration-300 ${
           hasScrolled ? 'opacity-0' : 'opacity-80 hover:opacity-100'
         }`}
       >
