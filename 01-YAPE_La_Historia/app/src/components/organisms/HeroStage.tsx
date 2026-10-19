@@ -746,11 +746,9 @@ export const HeroStage: React.FC = () => {
             </span>
           </h1>
 
-          {/* Sub-headline / Cuerpo */}
-          <p className="hero-subtext-chunk mt-3.5 md:mt-4 text-xs sm:text-sm md:text-base text-[#D0D0CE] max-w-sm md:max-w-lg font-body font-medium leading-relaxed drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] will-change-transform">
-            Hoy está instalada en el bolsillo de casi todos, pero en su primer fin de semana de
-            lanzamiento fue un <span className="text-[#FFFFFF] underline decoration-[#555555] font-semibold">desastre absoluto</span>.
-            Esta no es la historia de una app exitosa; son los desafíos que casi la matan.
+          {/* Subtítulo Periodístico Editorial */}
+          <p className="hero-subtext-chunk mt-3.5 md:mt-4 text-sm sm:text-base md:text-lg text-[#EAEAEA] max-w-sm md:max-w-xl font-body font-normal leading-snug md:leading-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] will-change-transform tracking-tight">
+            «La historia secreta detrás de <span className="text-[#FFFFFF] font-semibold">YAPE</span>, la app de pagos que mueve más dinero que los bancos más grandes del Perú»
           </p>
         </div>
       </div>
