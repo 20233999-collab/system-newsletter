@@ -11,7 +11,54 @@ const MANIFESTO_BLOCK_2 = "Esta no es la historia de una aplicación exitosa; so
 export const IntroManifestoSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const textWrapperRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isIdle, setIsIdle] = useState(false);
+  const idleTimerRef = useRef<number | null>(null);
+
+  // Control del temporizador de inactividad (Opción 2: Idle Pulse tras 3s quieto)
+  useEffect(() => {
+    const resetIdleTimer = () => {
+      setIsIdle(false);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = window.setTimeout(() => {
+        setIsIdle(true);
+      }, 3000);
+    };
+
+    window.addEventListener('scroll', resetIdleTimer, { passive: true });
+    window.addEventListener('mousemove', resetIdleTimer, { passive: true });
+    window.addEventListener('touchstart', resetIdleTimer, { passive: true });
+
+    // Iniciar temporizador al montar
+    idleTimerRef.current = window.setTimeout(() => {
+      setIsIdle(true);
+    }, 3200);
+
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      window.removeEventListener('scroll', resetIdleTimer);
+      window.removeEventListener('mousemove', resetIdleTimer);
+      window.removeEventListener('touchstart', resetIdleTimer);
+    };
+  }, []);
+
+  // Seguimiento magnético suave del ratón para el badge (Opción 4: Cursor reactivo en desktop)
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!badgeRef.current || window.innerWidth < 1024) return;
+      const { innerWidth } = window;
+      const offsetX = (e.clientX / innerWidth - 0.5) * 28;
+      gsap.to(badgeRef.current, {
+        x: offsetX,
+        duration: 0.8,
+        ease: 'power2.out',
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current || !textWrapperRef.current) return;
@@ -117,18 +164,28 @@ export const IntroManifestoSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Indicador de scroll inferior interactivo con animación sutil */}
+        {/* Indicador de scroll reactivo (Opción 2: Idle Pulse + Opción 4: Badge magnético) */}
         <div
-          className={`absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none select-none transition-all duration-500 ease-out ${
-            scrollProgress > 0.88 ? 'opacity-0 translate-y-3' : 'opacity-85 hover:opacity-100'
+          ref={badgeRef}
+          className={`absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none select-none transition-all duration-700 ease-out ${
+            // Visible si el usuario se queda quieto (isIdle) o cuando el scroll llega al final del texto (scrollProgress > 0.92)
+            isIdle || scrollProgress > 0.92
+              ? 'opacity-100 translate-y-0 scale-100'
+              : 'opacity-0 translate-y-3 scale-95 pointer-events-none'
           }`}
         >
-          <div className="relative w-5 h-8.5 rounded-full border border-white/20 bg-black/40 backdrop-blur-md flex items-start justify-center p-1 shadow-[0_4px_16px_rgba(0,0,0,0.6)]">
-            <div className="w-1 h-2 rounded-full bg-gradient-to-b from-[#FFD700] to-[#FFFFFF] animate-scroll-wheel shadow-[0_0_6px_rgba(255,215,0,0.7)]" />
+          {/* Badge magnético interactivo (Opción 4) */}
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/60 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.8)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-ping" />
+            <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-white/90 font-medium">
+              {scrollProgress > 0.92 ? 'CONTINUAR HISTORIA ↓' : 'SCROLL ↓'}
+            </span>
           </div>
-          <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.26em] text-[#E0E0DC]/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-            Scroll
-          </span>
+
+          {/* Micro-píldora con wheel dinámico sutil */}
+          <div className="relative w-4 h-7 rounded-full border border-white/20 bg-black/30 flex items-start justify-center p-0.5">
+            <div className="w-1 h-1.5 rounded-full bg-gradient-to-b from-[#FFD700] to-[#FFFFFF] animate-scroll-wheel shadow-[0_0_8px_rgba(255,215,0,0.8)]" />
+          </div>
         </div>
       </div>
     </section>
