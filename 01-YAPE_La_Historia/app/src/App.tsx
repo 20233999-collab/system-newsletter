@@ -25,8 +25,8 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#080808] text-[#F6F6F4] flex flex-col font-body selection:bg-[#FFFFFF] selection:text-[#000000]">
-      <main className="h-full w-full flex flex-col">
+    <div className="min-h-[100dvh] w-full overflow-x-hidden bg-[#080808] text-[#F6F6F4] flex flex-col font-body selection:bg-[#FFFFFF] selection:text-[#000000]">
+      <main className="w-full flex flex-col">
         {/* Milestone 1: Hero Stage Collage Showcase */}
         <HeroStage />
       </main>

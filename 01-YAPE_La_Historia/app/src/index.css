@@ -102,3 +102,16 @@ html.lenis, html.lenis body {
   will-change: transform;
 }
 
+/* Accessibility: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-back,
+  .animate-marquee-front,
+  .animate-mote-float {
+    animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+

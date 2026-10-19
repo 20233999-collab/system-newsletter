@@ -24,9 +24,12 @@ export const HeroStage: React.FC = () => {
 
   // Visual Interactive Config State (Persisted in localStorage)
   const [config, setConfig] = useState<HeroVisualConfig>(loadHeroConfig);
+  const configRef = useRef<HeroVisualConfig>(config);
+  configRef.current = config;
+
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<keyof HeroVisualConfig>('edificiosBack');
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024);
   const [hasScrolled, setHasScrolled] = useState(false);
 
   // High-performance GSAP quickTo setters (Zero React re-renders during mouse move)
@@ -43,7 +46,7 @@ export const HeroStage: React.FC = () => {
   const activeTweens = useRef<gsap.core.Tween[]>([]);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
     const handleScroll = () => setHasScrolled(window.scrollY > 35);
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -75,6 +78,27 @@ export const HeroStage: React.FC = () => {
     }
   }, []);
 
+  // Passive mousemove listener for desktop & landscape tablet parallax
+  useEffect(() => {
+    const handleParallax = (e: MouseEvent) => {
+      if (window.innerWidth < 1024 || draggingItem.current) return;
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      const q = quickSetters.current;
+      q.skyX?.(x * -8);
+      q.skyY?.(y * -4);
+      q.backX?.(x * -16);
+      q.backY?.(y * -6);
+      q.yapeX?.(x * -28);
+      q.yapeY?.(y * -10);
+      q.frontX?.(x * -48);
+      q.frontY?.(y * -16);
+    };
+
+    window.addEventListener('mousemove', handleParallax, { passive: true });
+    return () => window.removeEventListener('mousemove', handleParallax);
+  }, []);
+
   // Save changes automatically
   const handleConfigChange = (newConfig: HeroVisualConfig) => {
     setConfig(newConfig);
@@ -96,85 +120,57 @@ export const HeroStage: React.FC = () => {
     dragStart.current = {
       x: clientX,
       y: clientY,
-      initialElemX: config[key].x,
-      initialElemY: config[key].y,
+      initialElemX: configRef.current[key].x,
+      initialElemY: configRef.current[key].y,
     };
-  };
 
-  useEffect(() => {
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      // Parallax mouse position via quickTo (Zero React re-render overhead)
-      if ('clientX' in e && window.innerWidth >= 768 && !draggingItem.current) {
-        const x = (e.clientX / window.innerWidth - 0.5) * 2;
-        const y = (e.clientY / window.innerHeight - 0.5) * 2;
-        const q = quickSetters.current;
-        q.skyX?.(x * -8);
-        q.skyY?.(y * -4);
-        q.backX?.(x * -16);
-        q.backY?.(y * -6);
-        q.yapeX?.(x * -28);
-        q.yapeY?.(y * -10);
-        q.frontX?.(x * -48);
-        q.frontY?.(y * -16);
-      }
-
-      // Dragging logic
+    const handlePointerMove = (moveEvent: MouseEvent | TouchEvent) => {
       if (!draggingItem.current) return;
-      const key = draggingItem.current;
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-
-      const isBuilding = key === 'edificiosBack' || key === 'edificiosFront';
+      const k = draggingItem.current;
+      const cx = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const cy = 'touches' in moveEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
+      const isBuilding = k === 'edificiosBack' || k === 'edificiosFront';
 
       if (isBuilding) {
-        // Buildings move in pixel offset
-        const deltaX = clientX - dragStart.current.x;
-        const deltaY = clientY - dragStart.current.y;
-
+        const deltaX = cx - dragStart.current.x;
+        const deltaY = cy - dragStart.current.y;
         const updated = {
-          ...config,
-          [key]: {
-            ...config[key],
+          ...configRef.current,
+          [k]: {
+            ...configRef.current[k],
             x: Math.round(dragStart.current.initialElemX + deltaX),
             y: Math.round(dragStart.current.initialElemY - deltaY),
           },
         };
-        setConfig(updated);
-        saveHeroConfig(updated);
+        handleConfigChange(updated);
       } else {
-        // Elements in percentage
-        const deltaX = ((clientX - dragStart.current.x) / window.innerWidth) * 100;
-        const deltaY = ((clientY - dragStart.current.y) / window.innerHeight) * 100;
-
+        const deltaX = ((cx - dragStart.current.x) / window.innerWidth) * 100;
+        const deltaY = ((cy - dragStart.current.y) / window.innerHeight) * 100;
         const updated = {
-          ...config,
-          [key]: {
-            ...config[key],
+          ...configRef.current,
+          [k]: {
+            ...configRef.current[k],
             x: Math.round(dragStart.current.initialElemX + deltaX),
             y: Math.round(dragStart.current.initialElemY - deltaY),
           },
         };
-        setConfig(updated);
-        saveHeroConfig(updated);
+        handleConfigChange(updated);
       }
     };
 
-    const handleEnd = () => {
+    const handlePointerEnd = () => {
       draggingItem.current = null;
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('mouseup', handlePointerEnd);
+      window.removeEventListener('touchmove', handlePointerMove);
+      window.removeEventListener('touchend', handlePointerEnd);
     };
 
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleMove);
-    window.addEventListener('touchend', handleEnd);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleMove);
-      window.removeEventListener('touchend', handleEnd);
-    };
-  }, [config]);
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerEnd);
+    window.addEventListener('touchmove', handlePointerMove);
+    window.addEventListener('touchend', handlePointerEnd);
+  };
 
   // Vox-style continuous drifting clouds and mist (infinite seamless loops)
   useEffect(() => {
@@ -238,6 +234,18 @@ export const HeroStage: React.FC = () => {
       // MÓDULO 3: INTRO ANIMATION ESTILO VOX (COLLAGE WORKBENCH)
       // Recortes analógicos que se arrastran y estampan en la mesa
       // ========================================================
+      const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) {
+        gsap.set([skyRef.current, edificiosBackIntroRef.current, yapeIntroRef.current, edificiosFrontIntroRef.current, '.hero-headline-chunk', '.hero-subtext-chunk', '.hero-scroll-cue'], {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          rotation: 0,
+          scale: 1,
+        });
+        return;
+      }
+
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
       // 1. Pliego de fondo / cielo que se asienta sobre la mesa de trabajo
@@ -373,7 +381,7 @@ export const HeroStage: React.FC = () => {
   return (
     <section
       ref={containerRef}
-      className="relative h-screen w-full flex flex-col justify-between pt-20 pb-5 px-4 md:px-8 overflow-hidden bg-[#080808]"
+      className="relative h-[100dvh] w-full flex flex-col justify-between pt-16 sm:pt-20 pb-4 sm:pb-5 px-4 lg:px-8 overflow-hidden bg-[#080808]"
     >
       {/* Editor Drawer Tool */}
       <VisualControls
@@ -482,11 +490,11 @@ export const HeroStage: React.FC = () => {
       >
         <div
           ref={edificiosBackParallaxRef}
-          className="flex items-end justify-start shrink-0 w-max select-none pointer-events-none will-change-transform"
+          className="flex items-end justify-start shrink-0 w-max select-none pointer-events-none"
         >
           <div
             ref={edificiosBackIntroRef}
-            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform filter contrast-110 brightness-95"
+            className="flex items-end shrink-0 w-max select-none pointer-events-none filter contrast-110 brightness-95"
           >
             <div
               ref={edificiosBackMarqueeRef}
@@ -538,8 +546,6 @@ export const HeroStage: React.FC = () => {
 
       {/* ======================================================== */}
       {/* CAPA 3: YAPE-PERSONA GIGANTE (CAPA INTERMEDIA) - Z: 15    */}
-      {/* ======================================================== */}
-      {/* CAPA 3: YAPE-PERSONA GIGANTE (CAPA INTERMEDIA) - Z: 15    */}
       {/* Se sitúa estrictamente POR ENCIMA de edificiosBack (z:10) */}
       {/* y POR DEBAJO de edificiosFront (z:20)                     */}
       {/* ======================================================== */}
@@ -556,7 +562,7 @@ export const HeroStage: React.FC = () => {
           opacity: config.yapePerson.opacity / 100,
           zIndex: isEditorOpen && activeTab === 'yapePerson' ? 27 : 15,
         }}
-        className={`absolute w-[32rem] sm:w-[34rem] md:w-[26rem] lg:w-[28rem] select-none transition-shadow ${
+        className={`absolute w-[28rem] sm:w-[32rem] md:w-[34rem] lg:w-[28rem] select-none transition-shadow ${
           isEditorOpen
             ? `cursor-grab active:cursor-grabbing ${
                 activeTab === 'yapePerson'
@@ -567,8 +573,8 @@ export const HeroStage: React.FC = () => {
         }`}
       >
         <div ref={yapeParallaxRef} className="w-full h-full relative will-change-transform">
-          <div ref={yapeIntroRef} className="w-full h-full relative will-change-transform">
-            <div ref={yapeFloatRef} className="w-full h-full relative will-change-transform">
+          <div ref={yapeIntroRef} className="w-full h-full relative">
+            <div ref={yapeFloatRef} className="w-full h-full relative">
               <img
                 src="/assets/hero/yape-persona.webp"
                 alt="Yape Superhéroe"
@@ -632,11 +638,11 @@ export const HeroStage: React.FC = () => {
       >
         <div
           ref={edificiosFrontParallaxRef}
-          className="flex items-end justify-start shrink-0 w-max select-none pointer-events-none will-change-transform"
+          className="flex items-end justify-start shrink-0 w-max select-none pointer-events-none"
         >
           <div
             ref={edificiosFrontIntroRef}
-            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)]"
+            className="flex items-end shrink-0 w-max select-none pointer-events-none filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)]"
           >
             <div
               ref={edificiosFrontMarqueeRef}
@@ -690,10 +696,10 @@ export const HeroStage: React.FC = () => {
       {/* CAPA 5: MOTAS & PARTÍCULAS ATMOSFÉRICAS - Z: 25           */}
       {/* ======================================================== */}
       <div className="absolute inset-0 z-25 pointer-events-none select-none overflow-hidden">
-        {[...Array(14)].map((_, i) => (
+        {[...Array(isMobile ? 6 : 14)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-white/45 shadow-[0_0_8px_rgba(255,255,255,0.75)] animate-mote-float"
+            className={`absolute rounded-full bg-white/45 ${isMobile ? 'shadow-none' : 'shadow-[0_0_8px_rgba(255,255,255,0.75)]'} animate-mote-float`}
             style={{
               width: `${(i % 3) + 2}px`,
               height: `${(i % 3) + 2}px`,
@@ -718,7 +724,7 @@ export const HeroStage: React.FC = () => {
       {/* ======================================================== */}
       {/* CAPA 6: TITULAR EDITORIAL Y CUERPO (UI / Z: 30)          */}
       {/* ======================================================== */}
-      <div className="relative z-30 max-w-7xl mx-auto w-full flex-1 flex items-start md:items-center justify-center md:justify-end pt-10 pb-4 md:py-12 pointer-events-none">
+      <div className="relative z-30 max-w-7xl mx-auto w-full flex-1 flex items-start lg:items-center justify-center lg:justify-end pt-8 sm:pt-10 pb-4 lg:py-12 pointer-events-none">
         <div
           onMouseDown={(e) => startDrag('textBlock', e)}
           onTouchStart={(e) => startDrag('textBlock', e)}
@@ -727,7 +733,7 @@ export const HeroStage: React.FC = () => {
             transform: `translate(${config.textBlock.x}px, ${-config.textBlock.y}px) scale(${config.textBlock.scale})`,
             opacity: config.textBlock.opacity / 100,
           }}
-          className={`hero-text-content w-full md:w-7/12 lg:w-1/2 flex flex-col items-center md:items-start text-center md:text-left px-5 sm:px-8 md:px-0 md:pl-6 pointer-events-auto ${
+          className={`hero-text-content w-full lg:w-7/12 xl:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left px-4 sm:px-8 lg:px-0 lg:pl-6 pointer-events-auto ${
             isEditorOpen
               ? `cursor-grab active:cursor-grabbing ${
                   activeTab === 'textBlock'
@@ -738,16 +744,16 @@ export const HeroStage: React.FC = () => {
           }`}
         >
           {/* Monumental Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-extrabold tracking-tight text-[#FFFFFF] leading-[1.08] md:leading-[1.05] drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
-            <span className="hero-headline-chunk block will-change-transform">EL IMPERIO</span>
-            <span className="hero-headline-chunk block will-change-transform">QUE CASI</span>
-            <span className="hero-headline-chunk block text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EAEAEA] to-[#888888] will-change-transform">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-display font-extrabold tracking-tight text-[#FFFFFF] leading-[1.08] lg:leading-[1.05] drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
+            <span className="hero-headline-chunk block">EL IMPERIO</span>
+            <span className="hero-headline-chunk block">QUE CASI</span>
+            <span className="hero-headline-chunk block text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EAEAEA] to-[#888888]">
               MUERE EN 72 HORAS:
             </span>
           </h1>
 
           {/* Subtítulo Periodístico Editorial */}
-          <p className="hero-subtext-chunk mt-3.5 md:mt-4 text-sm sm:text-base md:text-lg text-[#EAEAEA] max-w-sm md:max-w-xl font-body font-normal leading-snug md:leading-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] will-change-transform tracking-tight">
+          <p className="hero-subtext-chunk mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg text-[#EAEAEA] max-w-sm sm:max-w-md lg:max-w-xl font-body font-normal leading-snug lg:leading-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] tracking-tight">
             «La historia secreta detrás de <span className="text-[#FFFFFF] font-semibold">YAPE</span>, la app de pagos que mueve más dinero que los bancos más grandes del Perú»
           </p>
         </div>
