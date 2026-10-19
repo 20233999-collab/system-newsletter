@@ -1,26 +1,33 @@
 import React, { useEffect } from 'react';
 import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { HeroStage } from './components/organisms/HeroStage';
+import { IntroManifestoSection } from './components/organisms/IntroManifestoSection';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export const App: React.FC = () => {
   useEffect(() => {
-    // Initialize Lenis smooth scroll as per trevornoah.com / Awwwards standard
+    // Initialize Lenis smooth scroll
     const lenis = new Lenis({
       duration: 1.25,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     });
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    // Synchronize Lenis scroll position with GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
 
-    const rafId = requestAnimationFrame(raf);
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(rafId);
       lenis.destroy();
+      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 
@@ -29,6 +36,9 @@ export const App: React.FC = () => {
       <main className="w-full flex flex-col">
         {/* Milestone 1: Hero Stage Collage Showcase */}
         <HeroStage />
+
+        {/* Milestone 2: Intro en Fondo Negro con Scroll-Scrubbed Reveal */}
+        <IntroManifestoSection />
       </main>
     </div>
   );
