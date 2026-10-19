@@ -760,17 +760,23 @@ export const HeroStage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* INDICADOR DE SCROLL EDITORIAL MINIMALISTA - Z: 30        */}
+      {/* INDICADOR DE SCROLL EDITORIAL MINIMALISTA MODERNO - Z: 30 */}
       {/* ======================================================== */}
       <div
-        className={`hero-scroll-cue absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-30 hidden sm:flex flex-col items-center gap-1.5 pointer-events-none select-none transition-opacity duration-300 ${
-          hasScrolled ? 'opacity-0' : 'opacity-80 hover:opacity-100'
+        className={`hero-scroll-cue absolute bottom-3.5 sm:bottom-5 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none select-none transition-all duration-500 ease-out ${
+          hasScrolled ? 'opacity-0 translate-y-3 pointer-events-none' : 'opacity-90 hover:opacity-100'
         }`}
       >
-        <span className="font-mono text-[9px] md:text-[10px] uppercase tracking-[0.22em] text-[#D0D0CE]/75 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-          Scroll para descubrir
+        {/* Micro Cápsula de Scroll Suizo/Minimalista */}
+        <div className="relative w-5 h-8.5 rounded-full border border-white/25 bg-black/40 backdrop-blur-md flex items-start justify-center p-1 shadow-[0_4px_16px_rgba(0,0,0,0.6)]">
+          {/* Wheel Dot con gradiente cian y glow sutil */}
+          <div className="w-1 h-2 rounded-full bg-gradient-to-b from-[#00D2B5] to-[#FFFFFF] animate-scroll-wheel shadow-[0_0_6px_rgba(0,210,181,0.8)]" />
+        </div>
+
+        {/* Micro-etiqueta monoespaciada de acompañamiento */}
+        <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.26em] text-[#E0E0DC]/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+          Scroll
         </span>
-        <div className="w-px h-5 md:h-7 bg-gradient-to-b from-[#FFFFFF] via-[#00D2B5] to-transparent animate-pulse" />
       </div>
     </section>
   );
