@@ -26,9 +26,21 @@ export const HeroStage: React.FC = () => {
   const [config, setConfig] = useState<HeroVisualConfig>(loadHeroConfig);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<keyof HeroVisualConfig>('edificiosBack');
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
   const [hasScrolled, setHasScrolled] = useState(false);
+
+  // High-performance GSAP quickTo setters (Zero React re-renders during mouse move)
+  const quickSetters = useRef<{
+    skyX?: (v: number) => void;
+    skyY?: (v: number) => void;
+    backX?: (v: number) => void;
+    backY?: (v: number) => void;
+    yapeX?: (v: number) => void;
+    yapeY?: (v: number) => void;
+    frontX?: (v: number) => void;
+    frontY?: (v: number) => void;
+  }>({});
+  const activeTweens = useRef<gsap.core.Tween[]>([]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -39,6 +51,28 @@ export const HeroStage: React.FC = () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
     };
+  }, []);
+
+  // Initialize hardware-accelerated quickTo setters
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (skyRef.current) {
+      quickSetters.current.skyX = gsap.quickTo(skyRef.current, 'x', { duration: 1.5, ease: 'power2.out' });
+      quickSetters.current.skyY = gsap.quickTo(skyRef.current, 'y', { duration: 1.5, ease: 'power2.out' });
+    }
+    if (edificiosBackParallaxRef.current) {
+      quickSetters.current.backX = gsap.quickTo(edificiosBackParallaxRef.current, 'x', { duration: 1.4, ease: 'power2.out' });
+      quickSetters.current.backY = gsap.quickTo(edificiosBackParallaxRef.current, 'y', { duration: 1.4, ease: 'power2.out' });
+    }
+    if (yapeParallaxRef.current) {
+      quickSetters.current.yapeX = gsap.quickTo(yapeParallaxRef.current, 'x', { duration: 1.25, ease: 'power2.out' });
+      quickSetters.current.yapeY = gsap.quickTo(yapeParallaxRef.current, 'y', { duration: 1.25, ease: 'power2.out' });
+    }
+    if (edificiosFrontParallaxRef.current) {
+      quickSetters.current.frontX = gsap.quickTo(edificiosFrontParallaxRef.current, 'x', { duration: 1.1, ease: 'power2.out' });
+      quickSetters.current.frontY = gsap.quickTo(edificiosFrontParallaxRef.current, 'y', { duration: 1.1, ease: 'power2.out' });
+    }
   }, []);
 
   // Save changes automatically
@@ -69,11 +103,19 @@ export const HeroStage: React.FC = () => {
 
   useEffect(() => {
     const handleMove = (e: MouseEvent | TouchEvent) => {
-      // Parallax mouse position
-      if ('clientX' in e) {
+      // Parallax mouse position via quickTo (Zero React re-render overhead)
+      if ('clientX' in e && window.innerWidth >= 768 && !draggingItem.current) {
         const x = (e.clientX / window.innerWidth - 0.5) * 2;
         const y = (e.clientY / window.innerHeight - 0.5) * 2;
-        setMousePos({ x, y });
+        const q = quickSetters.current;
+        q.skyX?.(x * -8);
+        q.skyY?.(y * -4);
+        q.backX?.(x * -16);
+        q.backY?.(y * -6);
+        q.yapeX?.(x * -28);
+        q.yapeY?.(y * -10);
+        q.frontX?.(x * -48);
+        q.frontY?.(y * -16);
       }
 
       // Dragging logic
@@ -138,7 +180,7 @@ export const HeroStage: React.FC = () => {
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Nubes Track 1: slower high altitude drift (65s infinite seamless loop)
-      gsap.to(nubesTrack1Ref.current, {
+      const t1 = gsap.to(nubesTrack1Ref.current, {
         xPercent: -50,
         ease: 'none',
         duration: 65,
@@ -146,7 +188,7 @@ export const HeroStage: React.FC = () => {
       });
 
       // Nubes Track 2: medium altitude dynamic drift (45s infinite seamless loop)
-      gsap.to(nubesTrack2Ref.current, {
+      const t2 = gsap.to(nubesTrack2Ref.current, {
         xPercent: -50,
         ease: 'none',
         duration: 45,
@@ -154,7 +196,7 @@ export const HeroStage: React.FC = () => {
       });
 
       // Nubes pasando por encima de Yape (32s loop continuo)
-      gsap.to(nubesOverYapeRef.current, {
+      const t3 = gsap.to(nubesOverYapeRef.current, {
         xPercent: -50,
         ease: 'none',
         duration: 32,
@@ -162,7 +204,7 @@ export const HeroStage: React.FC = () => {
       });
 
       // Neblina Track 1: Bruma intermedia horizontal (38s infinite loop)
-      gsap.to(mistTrack1Ref.current, {
+      const t4 = gsap.to(mistTrack1Ref.current, {
         xPercent: -50,
         ease: 'none',
         duration: 38,
@@ -170,7 +212,7 @@ export const HeroStage: React.FC = () => {
       });
 
       // Neblina Track 2: Velo bajo de suelo a contraviento (28s loop inverso)
-      gsap.to(mistTrack2Ref.current, {
+      const t5 = gsap.to(mistTrack2Ref.current, {
         xPercent: 50,
         ease: 'none',
         duration: 28,
@@ -180,7 +222,7 @@ export const HeroStage: React.FC = () => {
       // ========================================================
       // MÓDULO 1: RESPIRACIÓN SUTIL DE YAPE EN SU SITIO (SIN DESPLAZARSE)
       // ========================================================
-      gsap.to(yapeFloatRef.current, {
+      const t6 = gsap.to(yapeFloatRef.current, {
         scaleY: 1.022,
         scaleX: 0.99,
         transformOrigin: 'bottom center',
@@ -189,6 +231,8 @@ export const HeroStage: React.FC = () => {
         yoyo: true,
         repeat: -1,
       });
+
+      activeTweens.current = [t1, t2, t3, t4, t5, t6];
 
       // ========================================================
       // MÓDULO 3: INTRO ANIMATION ESTILO VOX (COLLAGE WORKBENCH)
@@ -293,41 +337,38 @@ export const HeroStage: React.FC = () => {
   }, []);
 
   // Multiplane Cinematic Parallax (Disabled when dragging or on small screens)
+  // Sleep Mode: Pausa animaciones infinitas de GSAP y CSS cuando el Hero no está visible o la pestaña está oculta
   useEffect(() => {
-    if (window.innerWidth < 768 || draggingItem.current) return;
+    if (!containerRef.current) return;
 
-    // Sky subtle counter-drift
-    gsap.to(skyRef.current, {
-      x: mousePos.x * -8,
-      y: mousePos.y * -4,
-      duration: 1.5,
-      ease: 'power2.out',
-    });
+    const setRunning = (running: boolean) => {
+      activeTweens.current.forEach((t) => (running ? t.play() : t.pause()));
+      if (edificiosBackMarqueeRef.current) {
+        edificiosBackMarqueeRef.current.style.animationPlayState = running ? 'running' : 'paused';
+      }
+      if (edificiosFrontMarqueeRef.current) {
+        edificiosFrontMarqueeRef.current.style.animationPlayState = running ? 'running' : 'paused';
+      }
+    };
 
-    // Edificios Fondo (Slowest - distant skyline horizon)
-    gsap.to(edificiosBackParallaxRef.current, {
-      x: mousePos.x * -16,
-      y: mousePos.y * -6,
-      duration: 1.4,
-      ease: 'power2.out',
-    });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setRunning(entry.isIntersecting && !document.hidden);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(containerRef.current);
 
-    // Yape Persona (Middle layer)
-    gsap.to(yapeParallaxRef.current, {
-      x: mousePos.x * -28,
-      y: mousePos.y * -10,
-      duration: 1.25,
-      ease: 'power2.out',
-    });
+    const handleVisibility = () => {
+      setRunning(!document.hidden);
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
-    // Edificios Frente (Fastest - foreground camera perspective)
-    gsap.to(edificiosFrontParallaxRef.current, {
-      x: mousePos.x * -48,
-      y: mousePos.y * -16,
-      duration: 1.1,
-      ease: 'power2.out',
-    });
-  }, [mousePos]);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
 
   return (
     <section
@@ -360,9 +401,11 @@ export const HeroStage: React.FC = () => {
         className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden"
       >
         <img
-          src="/assets/hero/fondo-hero-limpio.jpg"
+          src="/assets/hero/fondo-hero-limpio.webp"
           alt="Cielo Atmosférico"
           draggable={false}
+          loading="eager"
+          decoding="async"
           className="w-full h-full object-cover object-top opacity-65 filter brightness-90 contrast-105 pointer-events-none"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#080808]/90 via-transparent to-[#080808]" />
@@ -378,14 +421,14 @@ export const HeroStage: React.FC = () => {
           className="absolute top-2 left-0 flex w-[200vw] opacity-35"
         >
           <div className="flex w-[100vw] justify-around items-start shrink-0">
-            <img src="/assets/hero/nubes_1.png" alt="Nube" draggable={false} className="w-80 md:w-[32rem] h-auto pointer-events-none" />
-            <img src="/assets/hero/nubes_3.png" alt="Nube" draggable={false} className="w-72 md:w-[28rem] h-auto pointer-events-none pt-6" />
-            <img src="/assets/hero/nubes_5.png" alt="Nube" draggable={false} className="w-64 md:w-[26rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_1.webp" alt="Nube" draggable={false} decoding="async" className="w-80 md:w-[32rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_3.webp" alt="Nube" draggable={false} decoding="async" className="w-72 md:w-[28rem] h-auto pointer-events-none pt-6" />
+            <img src="/assets/hero/nubes_5.webp" alt="Nube" draggable={false} decoding="async" className="w-64 md:w-[26rem] h-auto pointer-events-none" />
           </div>
           <div className="flex w-[100vw] justify-around items-start shrink-0">
-            <img src="/assets/hero/nubes_1.png" alt="Nube" draggable={false} className="w-80 md:w-[32rem] h-auto pointer-events-none" />
-            <img src="/assets/hero/nubes_3.png" alt="Nube" draggable={false} className="w-72 md:w-[28rem] h-auto pointer-events-none pt-6" />
-            <img src="/assets/hero/nubes_5.png" alt="Nube" draggable={false} className="w-64 md:w-[26rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_1.webp" alt="Nube" draggable={false} decoding="async" className="w-80 md:w-[32rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_3.webp" alt="Nube" draggable={false} decoding="async" className="w-72 md:w-[28rem] h-auto pointer-events-none pt-6" />
+            <img src="/assets/hero/nubes_5.webp" alt="Nube" draggable={false} decoding="async" className="w-64 md:w-[26rem] h-auto pointer-events-none" />
           </div>
         </div>
 
@@ -395,12 +438,12 @@ export const HeroStage: React.FC = () => {
           className="absolute top-12 left-0 flex w-[200vw] opacity-45"
         >
           <div className="flex w-[100vw] justify-between items-start shrink-0 px-8">
-            <img src="/assets/hero/nubes_2.png" alt="Nube" draggable={false} className="w-96 md:w-[36rem] h-auto pointer-events-none" />
-            <img src="/assets/hero/nubes_4.png" alt="Nube" draggable={false} className="w-80 md:w-[30rem] h-auto pointer-events-none pt-4" />
+            <img src="/assets/hero/nubes_2.webp" alt="Nube" draggable={false} decoding="async" className="w-96 md:w-[36rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_4.webp" alt="Nube" draggable={false} decoding="async" className="w-80 md:w-[30rem] h-auto pointer-events-none pt-4" />
           </div>
           <div className="flex w-[100vw] justify-between items-start shrink-0 px-8">
-            <img src="/assets/hero/nubes_2.png" alt="Nube" draggable={false} className="w-96 md:w-[36rem] h-auto pointer-events-none" />
-            <img src="/assets/hero/nubes_4.png" alt="Nube" draggable={false} className="w-80 md:w-[30rem] h-auto pointer-events-none pt-4" />
+            <img src="/assets/hero/nubes_2.webp" alt="Nube" draggable={false} decoding="async" className="w-96 md:w-[36rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_4.webp" alt="Nube" draggable={false} decoding="async" className="w-80 md:w-[30rem] h-auto pointer-events-none pt-4" />
           </div>
         </div>
       </div>
@@ -443,65 +486,30 @@ export const HeroStage: React.FC = () => {
         >
           <div
             ref={edificiosBackIntroRef}
-            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform"
+            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform filter contrast-110 brightness-95"
           >
             <div
               ref={edificiosBackMarqueeRef}
               className="flex items-end shrink-0 select-none pointer-events-none will-change-transform animate-marquee-back"
             >
-            {/* Unit 1: 4 tiles seamless */}
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom filter contrast-110 brightness-95 pointer-events-none select-none"
-            />
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo Espejo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo Espejo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
-
-            {/* Unit 2: 4 tiles seamless loop duplicate */}
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo Espejo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios02.png"
-              alt="Edificios Fondo Espejo"
-              draggable={false}
-              className="h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-110 brightness-95 pointer-events-none select-none -ml-px"
-            />
+              {(isMobile ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5, 6, 7]).map((idx) => {
+                const isMirrored = idx % 2 === 1;
+                return (
+                  <img
+                    key={idx}
+                    src="/assets/hero/edificios02.webp"
+                    alt={`Edificios Fondo ${isMirrored ? 'Espejo' : ''}`}
+                    draggable={false}
+                    loading="eager"
+                    decoding="async"
+                    className={`h-[46vh] md:h-[48vh] w-auto max-w-none object-cover object-bottom pointer-events-none select-none ${
+                      isMirrored ? 'scale-x-[-1] -ml-px' : idx > 0 ? '-ml-px' : ''
+                    }`}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
       </div>
         {isEditorOpen && activeTab === 'edificiosBack' && (
           <div className="absolute top-4 left-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
@@ -562,9 +570,11 @@ export const HeroStage: React.FC = () => {
           <div ref={yapeIntroRef} className="w-full h-full relative will-change-transform">
             <div ref={yapeFloatRef} className="w-full h-full relative will-change-transform">
               <img
-                src="/assets/hero/yape-persona.png"
+                src="/assets/hero/yape-persona.webp"
                 alt="Yape Superhéroe"
                 draggable={false}
+                loading="eager"
+                decoding="async"
                 className="w-full h-auto shadow-cutout transition-transform duration-200 pointer-events-none select-none"
               />
             </div>
@@ -587,12 +597,12 @@ export const HeroStage: React.FC = () => {
           className="flex w-[200vw] opacity-60 mix-blend-screen pointer-events-none"
         >
           <div className="flex w-[100vw] justify-around items-center shrink-0">
-            <img src="/assets/hero/nubes_4.png" alt="Nube sobre Yape" draggable={false} className="w-80 md:w-[32rem] h-auto pointer-events-none" />
-            <img src="/assets/hero/nubes_2.png" alt="Nube sobre Yape" draggable={false} className="w-96 md:w-[36rem] h-auto pointer-events-none pt-6" />
+            <img src="/assets/hero/nubes_4.webp" alt="Nube sobre Yape" draggable={false} decoding="async" className="w-80 md:w-[32rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_2.webp" alt="Nube sobre Yape" draggable={false} decoding="async" className="w-96 md:w-[36rem] h-auto pointer-events-none pt-6" />
           </div>
           <div className="flex w-[100vw] justify-around items-center shrink-0">
-            <img src="/assets/hero/nubes_4.png" alt="Nube sobre Yape" draggable={false} className="w-80 md:w-[32rem] h-auto pointer-events-none" />
-            <img src="/assets/hero/nubes_2.png" alt="Nube sobre Yape" draggable={false} className="w-96 md:w-[36rem] h-auto pointer-events-none pt-6" />
+            <img src="/assets/hero/nubes_4.webp" alt="Nube sobre Yape" draggable={false} decoding="async" className="w-80 md:w-[32rem] h-auto pointer-events-none" />
+            <img src="/assets/hero/nubes_2.webp" alt="Nube sobre Yape" draggable={false} decoding="async" className="w-96 md:w-[36rem] h-auto pointer-events-none pt-6" />
           </div>
         </div>
       </div>
@@ -626,65 +636,30 @@ export const HeroStage: React.FC = () => {
         >
           <div
             ref={edificiosFrontIntroRef}
-            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform"
+            className="flex items-end shrink-0 w-max select-none pointer-events-none will-change-transform filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)]"
           >
             <div
               ref={edificiosFrontMarqueeRef}
               className="flex items-end shrink-0 select-none pointer-events-none will-change-transform animate-marquee-front"
             >
-            {/* Unit 1: 4 tiles seamless */}
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none"
-            />
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente Espejo"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente Espejo"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
-
-            {/* Unit 2: 4 tiles seamless loop duplicate */}
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente Espejo"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
-            <img
-              src="/assets/hero/edificios01.png"
-              alt="Edificios Frente Espejo"
-              draggable={false}
-              className="h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom scale-x-[-1] filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)] pointer-events-none select-none -ml-px"
-            />
+              {(isMobile ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5, 6, 7]).map((idx) => {
+                const isMirrored = idx % 2 === 1;
+                return (
+                  <img
+                    key={idx}
+                    src="/assets/hero/edificios01.webp"
+                    alt={`Edificios Frente ${isMirrored ? 'Espejo' : ''}`}
+                    draggable={false}
+                    loading="eager"
+                    decoding="async"
+                    className={`h-[35vh] md:h-[36vh] w-auto max-w-none object-cover object-bottom pointer-events-none select-none ${
+                      isMirrored ? 'scale-x-[-1] -ml-px' : idx > 0 ? '-ml-px' : ''
+                    }`}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
       </div>
         {isEditorOpen && activeTab === 'edificiosFront' && (
           <div className="absolute top-4 right-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
