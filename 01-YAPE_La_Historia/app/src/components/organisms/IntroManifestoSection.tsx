@@ -85,7 +85,7 @@ export const IntroManifestoSection: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  // Función para descomponer el texto en caracteres manteniendo palabras agrupadas con levitación individual asíncrona
+  // Función para descomponer el texto en caracteres manteniendo palabras agrupadas con efecto ola armónica recontra sutil
   const renderTypewriterText = (text: string, isSubtitle = false, offsetIndex = 0) => {
     const words = text.split(' ');
 
@@ -95,22 +95,20 @@ export const IntroManifestoSection: React.FC = () => {
         word.toLowerCase().includes('absoluto') ||
         word.toLowerCase().includes('matarla');
 
-      // Animación de respiración / levitación desfasada palabra por palabra (estilo Awwwards)
+      // Efecto ola armónica continua: cadencia fija de 0.12s por palabra para propagación fluida
       const globalWordIndex = offsetIndex + wordIdx;
-      const levitateDuration = `${4.2 + (globalWordIndex % 5) * 0.45}s`;
-      const levitateDelay = `${((globalWordIndex * 0.28) % 2.5).toFixed(2)}s`;
+      const waveDelay = `${(globalWordIndex * 0.12).toFixed(2)}s`;
 
       return (
         <span
           key={wordIdx}
-          className={`inline-block whitespace-nowrap mx-[0.14em] animate-word-levitate ${
+          className={`inline-block whitespace-nowrap mx-[0.14em] animate-word-wave ${
             isCriticalGold
               ? 'text-[#FFD700] drop-shadow-[0_0_16px_rgba(255,215,0,0.55)] font-black'
               : ''
           }`}
           style={{
-            animationDuration: levitateDuration,
-            animationDelay: levitateDelay,
+            animationDelay: waveDelay,
           }}
         >
           {word.split('').map((char, charIdx) => (
