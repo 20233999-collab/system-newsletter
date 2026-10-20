@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Move } from 'lucide-react';
 import { type HeroVisualConfig, saveHeroConfig, loadHeroConfig } from '../../utils/visualConfig';
 import { VisualControls } from './VisualControls';
@@ -176,7 +176,10 @@ export const HeroStage: React.FC = () => {
   };
 
   // Vox-style continuous drifting clouds and mist (infinite seamless loops)
-  useEffect(() => {
+  // Use useLayoutEffect to mount initial transforms synchronously before the first paint (Zero FOUC)
+  useLayoutEffect(() => {
+    let safetyFallback: ReturnType<typeof setTimeout> | undefined;
+
     const ctx = gsap.context(() => {
       // Nubes Track 1: slower high altitude drift (65s infinite seamless loop)
       const t1 = gsap.to(nubesTrack1Ref.current, {
@@ -249,7 +252,10 @@ export const HeroStage: React.FC = () => {
         return;
       }
 
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      const tl = gsap.timeline({ 
+        defaults: { ease: 'power3.out' },
+        paused: true,
+      });
 
       // 1. Pliego de fondo / cielo que se asienta sobre la mesa de trabajo
       tl.fromTo(skyRef.current, {
@@ -342,9 +348,27 @@ export const HeroStage: React.FC = () => {
         duration: 0.6,
         ease: 'power2.out',
       }, '-=0.25');
+
+      let hasStarted = false;
+      const startIntroTimeline = () => {
+        if (!hasStarted) {
+          hasStarted = true;
+          tl.play();
+        }
+      };
+
+      if (typeof document !== 'undefined' && document.fonts) {
+        document.fonts.ready.then(() => {
+          requestAnimationFrame(startIntroTimeline);
+        });
+      }
+      safetyFallback = setTimeout(startIntroTimeline, 120);
     });
 
-    return () => ctx.revert();
+    return () => {
+      if (safetyFallback) clearTimeout(safetyFallback);
+      ctx.revert();
+    };
   }, []);
 
   // Multiplane Cinematic Parallax (Disabled when dragging or on small screens)
@@ -410,6 +434,7 @@ export const HeroStage: React.FC = () => {
       {/* ======================================================== */}
       <div
         ref={skyRef}
+        style={{ opacity: 0.35 }}
         className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden transform-gpu will-change-transform"
       >
         <img
@@ -498,6 +523,7 @@ export const HeroStage: React.FC = () => {
         >
           <div
             ref={edificiosBackIntroRef}
+            style={{ opacity: 0 }}
             className="flex items-end shrink-0 w-max select-none pointer-events-none filter contrast-110 brightness-95"
           >
             <div
@@ -522,7 +548,7 @@ export const HeroStage: React.FC = () => {
               })}
             </div>
           </div>
-      </div>
+        </div>
         {isEditorOpen && activeTab === 'edificiosBack' && (
           <div className="absolute top-4 left-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
             CAPA SELECCIONADA: EDIFICIOS FONDO (02) - TRIPLET ESPEJO
@@ -577,7 +603,7 @@ export const HeroStage: React.FC = () => {
         }`}
       >
         <div ref={yapeParallaxRef} className="w-full h-full relative will-change-transform">
-          <div ref={yapeIntroRef} className="w-full h-full relative">
+          <div ref={yapeIntroRef} style={{ opacity: 0 }} className="w-full h-full relative">
             <div ref={yapeFloatRef} className="w-full h-full relative">
               <img
                 src="/assets/hero/yape-persona.webp"
@@ -646,6 +672,7 @@ export const HeroStage: React.FC = () => {
         >
           <div
             ref={edificiosFrontIntroRef}
+            style={{ opacity: 0 }}
             className="flex items-end shrink-0 w-max select-none pointer-events-none filter contrast-125 brightness-95 drop-shadow-[0_-15px_35px_rgba(0,0,0,0.85)]"
           >
             <div
@@ -670,7 +697,7 @@ export const HeroStage: React.FC = () => {
               })}
             </div>
           </div>
-      </div>
+        </div>
         {isEditorOpen && activeTab === 'edificiosFront' && (
           <div className="absolute top-4 right-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
             CAPA SELECCIONADA: EDIFICIOS FRENTE (01) - TRIPLET ESPEJO
@@ -749,15 +776,15 @@ export const HeroStage: React.FC = () => {
         >
           {/* Monumental Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-display font-extrabold tracking-tight text-[#FFFFFF] leading-[1.08] lg:leading-[1.05] drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
-            <span className="hero-headline-chunk block">EL IMPERIO</span>
-            <span className="hero-headline-chunk block">QUE CASI</span>
-            <span className="hero-headline-chunk block text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EAEAEA] to-[#888888]">
+            <span className="hero-headline-chunk block" style={{ opacity: 0 }}>EL IMPERIO</span>
+            <span className="hero-headline-chunk block" style={{ opacity: 0 }}>QUE CASI</span>
+            <span className="hero-headline-chunk block text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#EAEAEA] to-[#888888]" style={{ opacity: 0 }}>
               MUERE EN 72 HORAS:
             </span>
           </h1>
 
           {/* Subtítulo Periodístico Editorial */}
-          <p className="hero-subtext-chunk mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg text-[#EAEAEA] max-w-sm sm:max-w-md lg:max-w-xl font-body font-normal leading-snug lg:leading-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] tracking-tight">
+          <p className="hero-subtext-chunk mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg text-[#EAEAEA] max-w-sm sm:max-w-md lg:max-w-xl font-body font-normal leading-snug lg:leading-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)] tracking-tight" style={{ opacity: 0 }}>
             «La historia secreta detrás de <span className="text-[#FFFFFF] font-semibold">YAPE</span>, la app de pagos que mueve más dinero que los bancos más grandes del Perú»
           </p>
         </div>
@@ -767,8 +794,9 @@ export const HeroStage: React.FC = () => {
       {/* INDICADOR DE SCROLL EDITORIAL MINIMALISTA MODERNO - Z: 30 */}
       {/* ======================================================== */}
       <div
+        style={{ opacity: 0 }}
         className={`hero-scroll-cue absolute bottom-3.5 sm:bottom-5 md:bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none select-none transition-all duration-500 ease-out ${
-          hasScrolled ? 'opacity-0 translate-y-3 pointer-events-none' : 'opacity-90 hover:opacity-100'
+          hasScrolled ? 'opacity-0 translate-y-3 pointer-events-none' : 'hover:opacity-100'
         }`}
       >
         {/* Micro Cápsula de Scroll Suizo/Minimalista */}

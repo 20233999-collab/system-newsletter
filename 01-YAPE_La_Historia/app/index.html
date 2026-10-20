@@ -1,16 +1,23 @@
 <!doctype html>
-<html lang="es" class="dark">
+<html lang="es" class="dark" style="background-color: #080808;">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/assets/hero/yape-persona.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YAPE // El imperio que casi muere en 72 horas</title>
+
+    <!-- Preload Critical Hero Cutout & Backdrop Assets to prevent asset popping -->
+    <link rel="preload" as="image" href="/assets/hero/fondo-hero-limpio.webp" type="image/webp" />
+    <link rel="preload" as="image" href="/assets/hero/yape-persona.webp" type="image/webp" />
+    <link rel="preload" as="image" href="/assets/hero/edificios01.webp" type="image/webp" />
+    <link rel="preload" as="image" href="/assets/hero/edificios02.webp" type="image/webp" />
+
     <!-- Google Fonts: Syne (Display Brutalist), Inter Tight (Body Editorial), JetBrains Mono (Labels/KPIs) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-[#080808] text-[#F6F6F4] antialiased selection:bg-[#FFFFFF] selection:text-[#000000] overflow-x-hidden">
+  <body class="bg-[#080808] text-[#F6F6F4] antialiased selection:bg-[#FFFFFF] selection:text-[#000000] overflow-x-hidden" style="background-color: #080808;">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -205,9 +205,7 @@ html.lenis, html.lenis body {
 
 /* GPU promotion for animated marquees and layers */
 .animate-marquee,
-.animate-marquee-reverse,
-.animate-marquee-back,
-.animate-marquee-front {
+.animate-marquee-reverse {
   transform: translateZ(0);
   backface-visibility: hidden;
 }

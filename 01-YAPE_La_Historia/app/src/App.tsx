@@ -25,7 +25,8 @@ export const App: React.FC = () => {
       lenis.raf(time * 1000);
     });
 
-    gsap.ticker.lagSmoothing(0);
+    // Use healthy lag smoothing so initial page hydration / asset decoding never drops intro animation frames
+    gsap.ticker.lagSmoothing(500, 33);
 
     return () => {
       lenis.destroy();
