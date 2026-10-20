@@ -16,9 +16,9 @@ export interface HeroVisualConfig {
 
 export const DEFAULT_HERO_CONFIG: HeroVisualConfig = {
   yapePerson: {
-    x: 12,
-    y: 7,
-    scale: 1.15,
+    x: 15,
+    y: 29,
+    scale: 2.2,
     rotation: 0,
     opacity: 100,
   },
@@ -31,15 +31,15 @@ export const DEFAULT_HERO_CONFIG: HeroVisualConfig = {
   },
   edificiosFront: {
     x: 0,
-    y: 0,
-    scale: 1,
+    y: 194,
+    scale: 2.05,
     rotation: 0,
     opacity: 100,
   },
   edificiosBack: {
-    x: 0,
-    y: 40,
-    scale: 1.02,
+    x: -181,
+    y: 282,
+    scale: 2.25,
     rotation: 0,
     opacity: 90,
   },
@@ -52,16 +52,10 @@ export const DEFAULT_HERO_CONFIG: HeroVisualConfig = {
   },
 };
 
-const STORAGE_KEY = 'yape_hero_visual_config_v4';
+const STORAGE_KEY = 'yape_hero_visual_config_v5';
 
 export function loadHeroConfig(): HeroVisualConfig {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_HERO_CONFIG;
-    return { ...DEFAULT_HERO_CONFIG, ...JSON.parse(raw) };
-  } catch {
-    return DEFAULT_HERO_CONFIG;
-  }
+  return DEFAULT_HERO_CONFIG;
 }
 
 export function saveHeroConfig(config: HeroVisualConfig): void {

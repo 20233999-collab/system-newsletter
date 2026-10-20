@@ -1,7 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Move } from 'lucide-react';
-import { type HeroVisualConfig, saveHeroConfig, loadHeroConfig } from '../../utils/visualConfig';
-import { VisualControls } from './VisualControls';
+import { DEFAULT_HERO_CONFIG } from '../../utils/visualConfig';
 import gsap from 'gsap';
 
 export const HeroStage: React.FC = () => {
@@ -22,13 +20,9 @@ export const HeroStage: React.FC = () => {
   const edificiosFrontIntroRef = useRef<HTMLDivElement>(null);
   const edificiosFrontMarqueeRef = useRef<HTMLDivElement>(null);
 
-  // Visual Interactive Config State (Persisted in localStorage)
-  const [config, setConfig] = useState<HeroVisualConfig>(loadHeroConfig);
-  const configRef = useRef<HeroVisualConfig>(config);
-  configRef.current = config;
+  // Official production config
+  const config = DEFAULT_HERO_CONFIG;
 
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<keyof HeroVisualConfig>('edificiosBack');
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024);
   const [hasScrolled, setHasScrolled] = useState(false);
 
@@ -84,7 +78,7 @@ export const HeroStage: React.FC = () => {
   // Passive mousemove listener for desktop & landscape tablet parallax
   useEffect(() => {
     const handleParallax = (e: MouseEvent) => {
-      if (window.innerWidth < 1024 || draggingItem.current) return;
+      if (window.innerWidth < 1024) return;
       const x = (e.clientX / window.innerWidth - 0.5) * 2;
       const y = (e.clientY / window.innerHeight - 0.5) * 2;
       const q = quickSetters.current;
@@ -101,79 +95,6 @@ export const HeroStage: React.FC = () => {
     window.addEventListener('mousemove', handleParallax, { passive: true });
     return () => window.removeEventListener('mousemove', handleParallax);
   }, []);
-
-  // Save changes automatically
-  const handleConfigChange = (newConfig: HeroVisualConfig) => {
-    setConfig(newConfig);
-    saveHeroConfig(newConfig);
-  };
-
-  // Dragging interaction state
-  const draggingItem = useRef<keyof HeroVisualConfig | null>(null);
-  const dragStart = useRef({ x: 0, y: 0, initialElemX: 0, initialElemY: 0 });
-
-  const startDrag = (key: keyof HeroVisualConfig, e: React.MouseEvent | React.TouchEvent) => {
-    if (!isEditorOpen) return;
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveTab(key);
-    draggingItem.current = key;
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    dragStart.current = {
-      x: clientX,
-      y: clientY,
-      initialElemX: configRef.current[key].x,
-      initialElemY: configRef.current[key].y,
-    };
-
-    const handlePointerMove = (moveEvent: MouseEvent | TouchEvent) => {
-      if (!draggingItem.current) return;
-      const k = draggingItem.current;
-      const cx = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
-      const cy = 'touches' in moveEvent ? moveEvent.touches[0].clientY : moveEvent.clientY;
-      const isBuilding = k === 'edificiosBack' || k === 'edificiosFront';
-
-      if (isBuilding) {
-        const deltaX = cx - dragStart.current.x;
-        const deltaY = cy - dragStart.current.y;
-        const updated = {
-          ...configRef.current,
-          [k]: {
-            ...configRef.current[k],
-            x: Math.round(dragStart.current.initialElemX + deltaX),
-            y: Math.round(dragStart.current.initialElemY - deltaY),
-          },
-        };
-        handleConfigChange(updated);
-      } else {
-        const deltaX = ((cx - dragStart.current.x) / window.innerWidth) * 100;
-        const deltaY = ((cy - dragStart.current.y) / window.innerHeight) * 100;
-        const updated = {
-          ...configRef.current,
-          [k]: {
-            ...configRef.current[k],
-            x: Math.round(dragStart.current.initialElemX + deltaX),
-            y: Math.round(dragStart.current.initialElemY - deltaY),
-          },
-        };
-        handleConfigChange(updated);
-      }
-    };
-
-    const handlePointerEnd = () => {
-      draggingItem.current = null;
-      window.removeEventListener('mousemove', handlePointerMove);
-      window.removeEventListener('mouseup', handlePointerEnd);
-      window.removeEventListener('touchmove', handlePointerMove);
-      window.removeEventListener('touchend', handlePointerEnd);
-    };
-
-    window.addEventListener('mousemove', handlePointerMove);
-    window.addEventListener('mouseup', handlePointerEnd);
-    window.addEventListener('touchmove', handlePointerMove);
-    window.addEventListener('touchend', handlePointerEnd);
-  };
 
   // Vox-style continuous drifting clouds and mist (infinite seamless loops)
   // Use useLayoutEffect to mount initial transforms synchronously before the first paint (Zero FOUC)
@@ -411,24 +332,6 @@ export const HeroStage: React.FC = () => {
       ref={containerRef}
       className="relative h-[100dvh] w-full flex flex-col justify-between pt-16 sm:pt-20 pb-4 sm:pb-5 px-4 lg:px-8 overflow-hidden bg-[#080808]"
     >
-      {/* Editor Drawer Tool */}
-      <VisualControls
-        config={config}
-        onChange={handleConfigChange}
-        isOpen={isEditorOpen}
-        onToggle={() => setIsEditorOpen(!isEditorOpen)}
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-      />
-
-      {/* Editor Active Indicator Banner */}
-      {isEditorOpen && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#FFFFFF] text-[#000000] px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-2xl border border-[#000000]">
-          <Move className="w-3.5 h-3.5 animate-pulse text-[#00D2B5]" />
-          <span>Editor Activo: Arrastra el elemento o edítalo desde el panel derecho</span>
-        </div>
-      )}
-
       {/* ======================================================== */}
       {/* CAPA 0: FONDO DE CIELO                                   */}
       {/* ======================================================== */}
@@ -499,23 +402,12 @@ export const HeroStage: React.FC = () => {
       {/* CAPA 2: EDIFICIOS DEL FONDO (edificios02 - ESPEJO TRIPLET) */}
       {/* ======================================================== */}
       <div
-        onMouseDown={(e) => startDrag('edificiosBack', e)}
-        onTouchStart={(e) => startDrag('edificiosBack', e)}
-        onClick={() => isEditorOpen && setActiveTab('edificiosBack')}
         style={{
           transform: `translate(${config.edificiosBack.x}px, ${-config.edificiosBack.y}px) scale(${config.edificiosBack.scale}) rotate(${config.edificiosBack.rotation}deg)`,
           opacity: config.edificiosBack.opacity / 100,
-          zIndex: isEditorOpen && activeTab === 'edificiosBack' ? 26 : 10,
+          zIndex: 10,
         }}
-        className={`absolute inset-x-0 bottom-0 flex items-end justify-start select-none overflow-hidden transition-shadow ${
-          isEditorOpen
-            ? `cursor-grab active:cursor-grabbing ${
-                activeTab === 'edificiosBack'
-                  ? 'ring-2 ring-[#00D2B5] shadow-[0_0_25px_rgba(0,210,181,0.5)] pointer-events-auto'
-                  : 'pointer-events-auto hover:ring-1 hover:ring-[#00D2B5]/50'
-              }`
-            : 'pointer-events-none'
-        }`}
+        className="absolute inset-x-0 bottom-0 flex items-end justify-start select-none overflow-hidden pointer-events-none"
       >
         <div
           ref={edificiosBackParallaxRef}
@@ -549,11 +441,6 @@ export const HeroStage: React.FC = () => {
             </div>
           </div>
         </div>
-        {isEditorOpen && activeTab === 'edificiosBack' && (
-          <div className="absolute top-4 left-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
-            CAPA SELECCIONADA: EDIFICIOS FONDO (02) - TRIPLET ESPEJO
-          </div>
-        )}
       </div>
 
       {/* ======================================================== */}
@@ -580,9 +467,6 @@ export const HeroStage: React.FC = () => {
       {/* y POR DEBAJO de edificiosFront (z:20)                     */}
       {/* ======================================================== */}
       <div
-        onMouseDown={(e) => startDrag('yapePerson', e)}
-        onTouchStart={(e) => startDrag('yapePerson', e)}
-        onClick={() => isEditorOpen && setActiveTab('yapePerson')}
         style={{
           left: isMobile ? '50%' : `${config.yapePerson.x}%`,
           bottom: isMobile ? `${config.yapePerson.y - 6}%` : `${config.yapePerson.y}%`,
@@ -590,17 +474,9 @@ export const HeroStage: React.FC = () => {
             ? `translateX(-50%) scale(${config.yapePerson.scale}) rotate(${config.yapePerson.rotation}deg)`
             : `scale(${config.yapePerson.scale}) rotate(${config.yapePerson.rotation}deg)`,
           opacity: config.yapePerson.opacity / 100,
-          zIndex: isEditorOpen && activeTab === 'yapePerson' ? 27 : 15,
+          zIndex: 15,
         }}
-        className={`absolute w-[28rem] sm:w-[32rem] md:w-[34rem] lg:w-[28rem] select-none transition-shadow ${
-          isEditorOpen
-            ? `cursor-grab active:cursor-grabbing ${
-                activeTab === 'yapePerson'
-                  ? 'ring-2 ring-[#FFFFFF] shadow-[0_0_25px_rgba(255,255,255,0.7)]'
-                  : 'hover:ring-1 hover:ring-[#FFFFFF]/50'
-              }`
-            : ''
-        }`}
+        className="absolute w-[28rem] sm:w-[32rem] md:w-[34rem] lg:w-[28rem] select-none pointer-events-none"
       >
         <div ref={yapeParallaxRef} className="w-full h-full relative will-change-transform">
           <div ref={yapeIntroRef} style={{ opacity: 0 }} className="w-full h-full relative">
@@ -616,11 +492,6 @@ export const HeroStage: React.FC = () => {
             </div>
           </div>
         </div>
-        {isEditorOpen && activeTab === 'yapePerson' && (
-          <div className="absolute -top-6 left-0 bg-[#FFFFFF] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
-            CAPA MEDIA: YAPE
-          </div>
-        )}
       </div>
 
       {/* ======================================================== */}
@@ -648,23 +519,12 @@ export const HeroStage: React.FC = () => {
       {/* Cubren los pies de yapePerson para dar profundidad       */}
       {/* ======================================================== */}
       <div
-        onMouseDown={(e) => startDrag('edificiosFront', e)}
-        onTouchStart={(e) => startDrag('edificiosFront', e)}
-        onClick={() => isEditorOpen && setActiveTab('edificiosFront')}
         style={{
           transform: `translate(${config.edificiosFront.x}px, ${-config.edificiosFront.y}px) scale(${config.edificiosFront.scale}) rotate(${config.edificiosFront.rotation}deg)`,
           opacity: config.edificiosFront.opacity / 100,
-          zIndex: isEditorOpen && activeTab === 'edificiosFront' ? 28 : 20,
+          zIndex: 20,
         }}
-        className={`absolute inset-x-0 bottom-0 flex items-end justify-start select-none overflow-hidden transition-shadow ${
-          isEditorOpen
-            ? `cursor-grab active:cursor-grabbing ${
-                activeTab === 'edificiosFront'
-                  ? 'ring-2 ring-[#00D2B5] shadow-[0_0_25px_rgba(0,210,181,0.5)] pointer-events-auto'
-                  : 'pointer-events-auto hover:ring-1 hover:ring-[#00D2B5]/50'
-              }`
-            : 'pointer-events-none'
-        }`}
+        className="absolute inset-x-0 bottom-0 flex items-end justify-start select-none overflow-hidden pointer-events-none"
       >
         <div
           ref={edificiosFrontParallaxRef}
@@ -698,11 +558,6 @@ export const HeroStage: React.FC = () => {
             </div>
           </div>
         </div>
-        {isEditorOpen && activeTab === 'edificiosFront' && (
-          <div className="absolute top-4 right-6 bg-[#00D2B5] text-[#000000] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider font-mono shadow-md">
-            CAPA SELECCIONADA: EDIFICIOS FRENTE (01) - TRIPLET ESPEJO
-          </div>
-        )}
       </div>
 
       {/* ======================================================== */}
@@ -757,22 +612,11 @@ export const HeroStage: React.FC = () => {
       {/* ======================================================== */}
       <div className="relative z-30 max-w-7xl mx-auto w-full flex-1 flex items-start lg:items-center justify-center lg:justify-end pt-8 sm:pt-10 pb-4 lg:py-12 pointer-events-none">
         <div
-          onMouseDown={(e) => startDrag('textBlock', e)}
-          onTouchStart={(e) => startDrag('textBlock', e)}
-          onClick={() => isEditorOpen && setActiveTab('textBlock')}
           style={{
             transform: `translate(${config.textBlock.x}px, ${-config.textBlock.y}px) scale(${config.textBlock.scale})`,
             opacity: config.textBlock.opacity / 100,
           }}
-          className={`hero-text-content w-full lg:w-7/12 xl:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left px-4 sm:px-8 lg:px-0 lg:pl-6 pointer-events-auto ${
-            isEditorOpen
-              ? `cursor-grab active:cursor-grabbing ${
-                  activeTab === 'textBlock'
-                    ? 'ring-2 ring-[#00D2B5] shadow-[0_0_20px_rgba(0,210,181,0.5)] p-2'
-                    : 'hover:ring-1 hover:ring-[#FFFFFF]/50 p-2'
-                }`
-              : ''
-          }`}
+          className="hero-text-content w-full lg:w-7/12 xl:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left px-4 sm:px-8 lg:px-0 lg:pl-6 pointer-events-auto"
         >
           {/* Monumental Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-display font-extrabold tracking-tight text-[#FFFFFF] leading-[1.08] lg:leading-[1.05] drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
