@@ -126,14 +126,19 @@ html.lenis, html.lenis body {
   will-change: transform, opacity;
 }
 
-/* Atmospheric Ambient Float for Section 2 (Cinematic Breath) */
-@keyframes ambient-float {
+/* Atmospheric Ambient Float for Section 2 (Cinematic Word Levitating Breath) */
+@keyframes word-levitate {
   0%, 100% {
     transform: translate3d(0, 0, 0);
   }
   50% {
-    transform: translate3d(0, -6px, 0);
+    transform: translate3d(0, -4.5px, 0);
   }
+}
+
+.animate-word-levitate {
+  animation: word-levitate ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes ambient-pulse-glow {
@@ -147,11 +152,6 @@ html.lenis, html.lenis body {
   }
 }
 
-.animate-ambient-float {
-  animation: ambient-float 6.5s ease-in-out infinite;
-  will-change: transform;
-}
-
 .animate-ambient-glow {
   animation: ambient-pulse-glow 8s ease-in-out infinite;
   will-change: transform, opacity;
@@ -163,7 +163,7 @@ html.lenis, html.lenis body {
   .animate-marquee-front,
   .animate-mote-float,
   .animate-scroll-wheel,
-  .animate-ambient-float,
+  .animate-word-levitate,
   .animate-ambient-glow {
     animation: none !important;
   }

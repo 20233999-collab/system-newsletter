@@ -11,7 +11,6 @@ const MANIFESTO_BLOCK_2 = "Esta no es la historia de una aplicación exitosa; so
 export const IntroManifestoSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const textWrapperRef = useRef<HTMLDivElement>(null);
-  const badgeRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isIdle, setIsIdle] = useState(false);
   const idleTimerRef = useRef<number | null>(null);
@@ -41,23 +40,6 @@ export const IntroManifestoSection: React.FC = () => {
       window.removeEventListener('mousemove', resetIdleTimer);
       window.removeEventListener('touchstart', resetIdleTimer);
     };
-  }, []);
-
-  // Seguimiento magnético suave del ratón para el badge (Opción 4: Cursor reactivo en desktop)
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!badgeRef.current || window.innerWidth < 1024) return;
-      const { innerWidth } = window;
-      const offsetX = (e.clientX / innerWidth - 0.5) * 28;
-      gsap.to(badgeRef.current, {
-        x: offsetX,
-        duration: 0.8,
-        ease: 'power2.out',
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   useEffect(() => {
@@ -103,8 +85,8 @@ export const IntroManifestoSection: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  // Función para descomponer el texto en caracteres manteniendo palabras agrupadas
-  const renderTypewriterText = (text: string, isSubtitle = false) => {
+  // Función para descomponer el texto en caracteres manteniendo palabras agrupadas con levitación individual asíncrona
+  const renderTypewriterText = (text: string, isSubtitle = false, offsetIndex = 0) => {
     const words = text.split(' ');
 
     return words.map((word, wordIdx) => {
@@ -113,14 +95,23 @@ export const IntroManifestoSection: React.FC = () => {
         word.toLowerCase().includes('absoluto') ||
         word.toLowerCase().includes('matarla');
 
+      // Animación de respiración / levitación desfasada palabra por palabra (estilo Awwwards)
+      const globalWordIndex = offsetIndex + wordIdx;
+      const levitateDuration = `${4.2 + (globalWordIndex % 5) * 0.45}s`;
+      const levitateDelay = `${((globalWordIndex * 0.28) % 2.5).toFixed(2)}s`;
+
       return (
         <span
           key={wordIdx}
-          className={`inline-block whitespace-nowrap mx-[0.14em] ${
+          className={`inline-block whitespace-nowrap mx-[0.14em] animate-word-levitate ${
             isCriticalGold
               ? 'text-[#FFD700] drop-shadow-[0_0_16px_rgba(255,215,0,0.55)] font-black'
               : ''
           }`}
+          style={{
+            animationDuration: levitateDuration,
+            animationDelay: levitateDelay,
+          }}
         >
           {word.split('').map((char, charIdx) => (
             <span
@@ -157,37 +148,37 @@ export const IntroManifestoSection: React.FC = () => {
         ref={textWrapperRef}
         className="sticky top-0 h-[100dvh] w-full flex flex-col justify-center items-center px-6 sm:px-12 md:px-16 lg:px-24 select-none overflow-hidden"
       >
-        {/* Envoltorio con micro-flotación ambiental continua (jamás está quieto) */}
-        <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center animate-ambient-float">
+        <div className="max-w-4xl mx-auto w-full flex flex-col items-center text-center">
           {/* Bloque 1: Titular Principal con Typewriter Reveal */}
           <h2 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.22] sm:leading-[1.18] md:leading-[1.14] tracking-tight max-w-4xl font-bold">
-            {renderTypewriterText(MANIFESTO_BLOCK_1, false)}
+            {renderTypewriterText(MANIFESTO_BLOCK_1, false, 0)}
           </h2>
 
           {/* Bloque 2: Subtítulo secundario en Cursiva y letras más pequeñas */}
           <p className="font-body italic text-base sm:text-xl md:text-2xl text-white/90 leading-relaxed sm:leading-snug max-w-2xl font-normal tracking-wide mt-6 sm:mt-8">
-            {renderTypewriterText(MANIFESTO_BLOCK_2, true)}
+            {renderTypewriterText(MANIFESTO_BLOCK_2, true, 25)}
           </p>
         </div>
 
-        {/* Indicador de scroll centrado, ultra-simple y minimalista */}
-        <div
-          ref={badgeRef}
-          className={`absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none select-none transition-all duration-700 ease-out ${
-            isIdle || scrollProgress > 0.92
-              ? 'opacity-85 translate-y-0'
-              : 'opacity-0 translate-y-2 pointer-events-none'
-          }`}
-        >
-          {/* Micro-cápsula ultra-minimalista y centrada */}
-          <div className="w-4 h-7 rounded-full border border-white/20 bg-black/50 backdrop-blur-sm flex items-start justify-center p-0.5 shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
-            <div className="w-1 h-1.5 rounded-full bg-gradient-to-b from-[#FFD700] to-white animate-scroll-wheel shadow-[0_0_6px_rgba(255,215,0,0.8)]" />
-          </div>
+        {/* Indicador de scroll centrado mediante flexbox completo, ultra-simple y minimalista */}
+        <div className="absolute bottom-6 sm:bottom-8 inset-x-0 flex justify-center pointer-events-none select-none z-30">
+          <div
+            className={`flex flex-col items-center gap-2 transition-all duration-700 ease-out ${
+              isIdle || scrollProgress > 0.92
+                ? 'opacity-85 translate-y-0'
+                : 'opacity-0 translate-y-2 pointer-events-none'
+            }`}
+          >
+            {/* Micro-cápsula ultra-minimalista */}
+            <div className="w-4 h-7 rounded-full border border-white/20 bg-black/50 backdrop-blur-sm flex items-start justify-center p-0.5 shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
+              <div className="w-1 h-1.5 rounded-full bg-gradient-to-b from-[#FFD700] to-white animate-scroll-wheel shadow-[0_0_6px_rgba(255,215,0,0.8)]" />
+            </div>
 
-          {/* Micro-label monoespaciado centrado */}
-          <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-            {scrollProgress > 0.92 ? 'Continuar' : 'Scroll'}
-          </span>
+            {/* Micro-label monoespaciado centrado */}
+            <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] pl-[0.28em]">
+              {scrollProgress > 0.92 ? 'Continuar' : 'Scroll'}
+            </span>
+          </div>
         </div>
       </div>
     </section>
