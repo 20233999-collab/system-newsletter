@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { HeroStage } from './components/organisms/HeroStage';
 import { IntroManifestoSection } from './components/organisms/IntroManifestoSection';
+import { ComingSoonSection } from './components/organisms/ComingSoonSection';
 import { UpperBar } from './components/organisms/UpperBar';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -43,6 +44,9 @@ export const App: React.FC = () => {
 
         {/* Milestone 2: Intro en Fondo Negro con Scroll-Scrubbed Reveal */}
         <IntroManifestoSection />
+
+        {/* Milestone 3: Capítulo 02 - Próximamente / Zona Clasificada */}
+        <ComingSoonSection />
       </main>
     </div>
   );

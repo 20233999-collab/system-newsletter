@@ -126,6 +126,38 @@ html.lenis, html.lenis body {
   will-change: transform, opacity;
 }
 
+@keyframes marquee-linear {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-linear-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-linear 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-linear-reverse 32s linear infinite;
+  will-change: transform;
+}
+
 /* Atmospheric Ambient Float for Section 2 (Cinematic Harmonic Wave Breath) */
 @keyframes word-wave {
   0%, 100% {
