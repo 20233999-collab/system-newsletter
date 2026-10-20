@@ -380,6 +380,7 @@ export const HeroStage: React.FC = () => {
 
   return (
     <section
+      id="seccion-hero"
       ref={containerRef}
       className="relative h-[100dvh] w-full flex flex-col justify-between pt-16 sm:pt-20 pb-4 sm:pb-5 px-4 lg:px-8 overflow-hidden bg-[#080808]"
     >

@@ -130,6 +130,7 @@ export const IntroManifestoSection: React.FC = () => {
 
   return (
     <section
+      id="seccion-intro"
       ref={containerRef}
       className="relative w-full bg-[#080808] text-[#F6F6F4] min-h-[260vh] z-20"
     >

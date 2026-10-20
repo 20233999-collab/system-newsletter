@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { HeroStage } from './components/organisms/HeroStage';
 import { IntroManifestoSection } from './components/organisms/IntroManifestoSection';
+import { UpperBar } from './components/organisms/UpperBar';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,6 +34,9 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-[100dvh] w-full overflow-x-hidden bg-[#080808] text-[#F6F6F4] flex flex-col font-body selection:bg-[#FFFFFF] selection:text-[#000000]">
+      {/* Upper Bar: Navegación flotante interactiva con hover trigger y scroll spy */}
+      <UpperBar />
+
       <main className="w-full flex flex-col">
         {/* Milestone 1: Hero Stage Collage Showcase */}
         <HeroStage />
