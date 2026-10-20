@@ -47,8 +47,11 @@ export const HeroStage: React.FC = () => {
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    const handleScroll = () => setHasScrolled(window.scrollY > 35);
-    window.addEventListener('resize', handleResize);
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 35;
+      setHasScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -407,7 +410,7 @@ export const HeroStage: React.FC = () => {
       {/* ======================================================== */}
       <div
         ref={skyRef}
-        className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden"
+        className="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden transform-gpu will-change-transform"
       >
         <img
           src="/assets/hero/fondo-hero-limpio.webp"

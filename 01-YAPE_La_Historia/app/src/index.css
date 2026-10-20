@@ -189,6 +189,29 @@ html.lenis, html.lenis body {
   will-change: transform, opacity;
 }
 
+/* High Performance Layer Promotion & Rendering Optimizations */
+.parallax-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+.subpixel-smooth {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* GPU promotion for animated marquees and layers */
+.animate-marquee,
+.animate-marquee-reverse,
+.animate-marquee-back,
+.animate-marquee-front {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Accessibility: prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-back,

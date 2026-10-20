@@ -4,8 +4,8 @@ import { ChevronDown } from 'lucide-react';
 // Secciones de la historia (máximo 2 palabras, simples)
 const SECTIONS = [
   { id: 'seccion-hero', label: '01 // INICIO' },
-  { id: 'seccion-intro', label: '02 // COLAPSO' },
-  { id: 'seccion-crisis', label: '03 // 72 HORAS' },
+  { id: 'seccion-intro', label: '02 // PRÓLOGO' },
+  { id: 'seccion-colapso', label: '03 // COLAPSO' },
   { id: 'seccion-rescate', label: '04 // RESCATE' },
   { id: 'seccion-imperio', label: '05 // IMPERIO' },
 ];
@@ -16,24 +16,36 @@ export const UpperBar: React.FC = () => {
   const [activeSection, setActiveSection] = useState('seccion-hero');
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const heroHeight = window.innerHeight * 0.75;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const heroHeight = window.innerHeight * 0.75;
 
-      // Ocultar completamente mientras se está en el Hero
-      setIsVisible(scrollY > heroHeight);
+          // Ocultar completamente mientras se está en el Hero
+          setIsVisible(scrollY > heroHeight);
 
-      // Scroll Spy: Detectar sección activa
-      if (scrollY < heroHeight) {
-        setActiveSection('seccion-hero');
-      } else {
-        const introElem = document.getElementById('seccion-intro');
-        if (introElem) {
-          const rect = introElem.getBoundingClientRect();
-          if (rect.top <= window.innerHeight * 0.5 && rect.bottom >= window.innerHeight * 0.2) {
-            setActiveSection('seccion-intro');
+          // Scroll Spy optimizado: Detectar sección activa
+          if (scrollY < heroHeight) {
+            setActiveSection('seccion-hero');
+          } else {
+            const sections = ['seccion-colapso', 'seccion-intro'];
+            for (const id of sections) {
+              const elem = document.getElementById(id);
+              if (elem) {
+                const rect = elem.getBoundingClientRect();
+                if (rect.top <= window.innerHeight * 0.55 && rect.bottom >= window.innerHeight * 0.2) {
+                  setActiveSection(id);
+                  break;
+                }
+              }
+            }
           }
-        }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
